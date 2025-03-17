@@ -1,0 +1,37 @@
+# Nom du workflow (il apparaîtra dans l'onglet Actions de GitHub)
+name: Docker Image CI/CD
+
+# Déclenchement du workflow
+on:
+  push: # Le workflow est déclenché lors d'un "push"
+    branches:
+      - main  # Se déclenche uniquement sur la branche "main"
+
+# Définition des jobs (tâches) à effectuer
+jobs:
+  build-and-push: # Nom du job principal
+    runs-on: ubuntu-latest # L'environnement virtuel où le job s'exécute (Ubuntu)
+
+    steps:
+    # Étape 1 : Récupérer le code source
+    - name: Checkout code
+      uses: actions/checkout@v3 # Clone le code source depuis le dépôt GitHub
+
+    # Étape 2 : Connexion à DockerHub
+    - name: Log in to DockerHub
+      uses: docker/login-action@v2 # Utilise l'action officielle Docker pour se connecter à DockerHub
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }} # Nom d'utilisateur récupéré depuis les secrets
+        password: ${{ secrets.DOCKER_PASSWORD }} # Mot de passe ou token récupéré depuis les secrets
+
+    # Étape 3 : Construire et taguer l'image Docker
+    - name: Build and tag Docker image
+      run: |
+        # Construire l'image Docker avec le fichier Dockerfile
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/basic-server:latest .
+
+    # Étape 4 : Pousser l'image Docker vers DockerHub
+    - name: Push Docker image to DockerHub
+      run: |
+        # Envoyer l'image vers le dépôt DockerHub
+        docker push ${{ secrets.DOCKER_USERNAME }}/basic-server:latest
